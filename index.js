@@ -19,11 +19,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // MySQL connection pool
 
 
-const pool = mysql.createPool({
+const connection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
+  password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD
+  port: 4000,
+  ssl: {
+    ca: fs.readFileSync(process.env.DB_CA_PATH)
+  }
 });
 
 
