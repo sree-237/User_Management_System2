@@ -1,0 +1,58 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 JS (optional, for interactive components) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <% if (typeof warning !== 'undefined') { %>
+        <div class="alert alert-danger"><%= warning %></div>
+      <% } %>
+  
+      <h2>The total number of users are: <%= count %></h2>
+  
+      <h3>Join us today</h3>
+      <form action="/user" method="post" class="row g-3">
+        <div class="col-md-4">
+          <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+        </div>
+        <div class="col-md-4">
+          <input type="email" name="email" class="form-control" placeholder="Enter email" required>
+        </div>
+        <div class="col-md-4">
+          <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary w-100">Submit</button>
+        </div>
+      </form>
+  
+      <hr>
+  
+      <h3>Search For User</h3>
+      <form action="/" method="get" class="d-flex">
+        <input type="search" name="search" class="form-control me-2" placeholder="Search by username or email" value="<%= search || '' %>">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
+      </form>
+  
+      <% if (search && users.length > 0) { %>
+        <h3>Search Results</h3>
+        <ul class="list-group mt-3">
+          <% users.forEach(user => { %>
+            <li class="list-group-item">
+              <p><strong>Id:</strong> <%= user.id %></p>
+              <p><strong>Username:</strong> <%= user.username %></p>
+              <p><strong>Email:</strong> <%= user.email %></p>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else if (search) { %>
+        <p class="text-muted">No users found.</p>
+      <% } %>
+    </div>
+  </body>
+    
