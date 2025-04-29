@@ -1,4 +1,4 @@
-
+const fs = require('fs');
 require('dotenv').config();
 const { faker } = require('@faker-js/faker');
 const mysql = require('mysql2');
@@ -17,17 +17,29 @@ app.set("views", path.join(__dirname, "/views"));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MySQL connection pool
+const caPath = path.resolve(__dirname, process.env.DB_CA_PATH);
 
-
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: 4000,
+  port: process.env.DB_PORT || 3306,  // Default MySQL port 3306 if not set
   ssl: {
-    ca: fs.readFileSync(process.env.DB_CA_PATH)
+   
+      ca: process.env.DB_CA
+    
+      // Path to your SSL certificate
   }
+});
+// Check the pool connection
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
+  }
+  console.log('Connected to the database!');
+  connection.release(); // Always release the connection when done
 });
 
 
@@ -48,14 +60,20 @@ app.get("/", (req, res) => {
   const searchQuery = 'SELECT * FROM user WHERE username LIKE ? OR email LIKE ?';
 
   pool.query(countQuery, (err, countResult) => {
-    if (err) return res.send("Error in count query");
+    if (err) {
+      console.error("Error in count query:", err);  // Log the error to the console
+      return res.send("Error in count query");
+    }
 
     const count = countResult[0].count;
 
     if (search) {
       const pattern = `%${search}%`;
       pool.query(searchQuery, [pattern, pattern], (err, users) => {
-        if (err) return res.send("Error in search query");
+        if (err) {
+          console.error("Error in search query:", err);  // Log the error to the console
+          return res.send("Error in search query");
+        }
         res.render("home.ejs", { count, users: users || [], search: true });
       });
     } else {
@@ -63,6 +81,7 @@ app.get("/", (req, res) => {
     }
   });
 });
+
 
 // Show all users
 app.get("/user", (req, res) => {
@@ -84,8 +103,6 @@ app.get("/user", (req, res) => {
     res.render("users.ejs", { users: filteredUsers, search });
   });
 });
-
-
 
 // Show edit form
 app.get("/user/:id/edit", (req, res) => {
@@ -160,8 +177,6 @@ app.post("/user", async (req, res) => {
   }
 });
 
-
-
 // Show delete confirmation form
 app.get("/user/:id/delete", (req, res) => {
   const { id } = req.params;
@@ -172,7 +187,6 @@ app.get("/user/:id/delete", (req, res) => {
     res.render("delete.ejs", { user });
   });
 });
-
 
 // Delete user
 app.delete('/user/:id', (req, res) => {
@@ -196,11 +210,8 @@ app.delete('/user/:id', (req, res) => {
   });
 });
 
-
-
-
-
 // Start server
-app.listen("8080", () => {
-  console.log("Server is listening on port 8080");
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });
